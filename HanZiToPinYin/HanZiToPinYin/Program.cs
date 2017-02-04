@@ -17,7 +17,7 @@ namespace HanZiToPinYin
 {
     class Program
     {
-        static string magicString = "_pinyinmagic";
+        static string magicString = "_程序用";
         static void CopyFiles(string oldDir, string pinyinDir, string filter)
         {
             string[] oldFileList = Directory.GetFiles(oldDir, filter, SearchOption.TopDirectoryOnly);
@@ -27,12 +27,12 @@ namespace HanZiToPinYin
                 string temp = oldFile;
                 string strPath, strFileName, strFileNameNoExt, strExt;
                 StringUtility.ParseFileName(ref temp, out strPath, out strFileName, out strFileNameNoExt, out strExt);
-                if(!Hz2Py.IsContainHz(strFileName))
+                if (!Hz2Py.IsContainHz(strFileName))
                 {
                     continue;
                 }
                 string pinyinFileName = SearchHelper.GetAllCharByChineseFont(strFileName);
-                
+
                 if (nameDic.ContainsKey(pinyinFileName))
                 {
                     Console.WriteLine("已经相同的拼音名字: " + pinyinFileName + " 文件是: " + nameDic[pinyinFileName] + " 重名文件是:" + oldFile);
@@ -83,7 +83,7 @@ namespace HanZiToPinYin
             if (args.Length == 0)
             {
                 inDir = Directory.GetCurrentDirectory();
-               // inDir = @"F:\GitProjects\ArtBmt\Art Bmt\UI";
+                //inDir = @"F:\GitProjects\ArtBmt\Art Bmt\UI";
             }
             else
             {
@@ -96,20 +96,48 @@ namespace HanZiToPinYin
                     filter = args[1];
                 }
             }
+            char[] cArray = Path.GetInvalidPathChars();
+            foreach (var c in cArray)
+            {
+                if (inDir.Contains(c))
+                {
+                    inDir = inDir.Replace(c.ToString(), "");
+                    Console.WriteLine("invalid char is " + c.ToString());
+                }
+            }
             string leftPath;
             string prePath = StringUtility.GetPrePathByChar('/', inDir, out leftPath);
-            string newPath = Path.Combine(prePath, leftPath + magicString);
-            if (Directory.Exists(newPath))
+           // Console.WriteLine("==========inDir is " + inDir);
+            leftPath = leftPath + magicString;
+            //Console.WriteLine("==========leftPath is " + leftPath);
+            //Console.WriteLine("==========new path is " + prePath);
+
+       
+            //Console.WriteLine("==========leftPath is " + leftPath);
+            //Console.ReadKey();
+            try
             {
-                Directory.Delete(newPath, true);
+                string newPath = Path.Combine(prePath, leftPath);
+                if (Directory.Exists(newPath))
+                {
+                    Directory.Delete(newPath, true);
+                }
+                Directory.CreateDirectory(newPath);
+                List<string> fileList = new List<string>();
+                StringUtility.CopyDirectory(inDir, newPath, ref fileList, null, CopyFileCallBack);
+                Console.WriteLine("============" + "当前路径：" + inDir + " 重命名文件格式：" + filter + "============");
+                RenameFile(newPath, filter);
+                Console.WriteLine("======操作完毕========");
+                Console.ReadKey();
             }
-            Directory.CreateDirectory(newPath);
-            List<string> fileList = new List<string>();
-            StringUtility.CopyDirectory(inDir, newPath, ref fileList,null, CopyFileCallBack);
-            Console.WriteLine("============" + "当前路径：" + inDir + " 重命名文件格式：" + filter + "============");
-            RenameFile(newPath, filter);
-            Console.WriteLine("======操作完毕========");
-            Console.ReadKey();
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Console.ReadKey();
+            }
+
+
+
         }
     }
 
