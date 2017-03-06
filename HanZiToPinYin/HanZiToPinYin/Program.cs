@@ -66,6 +66,10 @@ namespace HanZiToPinYin
                 CopyFiles(dir, dir, filter);
 
             }
+            if(dirArray.Length == 0)
+            {
+                CopyFiles(inDir, inDir, filter);
+            }
         }
         static public void CopyFileCallBack(string fileName)
         {
@@ -78,12 +82,14 @@ namespace HanZiToPinYin
             Console.WriteLine(@"=============参数一：文件名          例如：C:\  ===================");
             Console.WriteLine(@"=============参数二：过滤文件后缀名  例如：*.png|*.txt=============");
             Console.WriteLine("============================================================");
+          //  Console.WriteLine("==========inDir is " + args[0]);
+           // Console.WriteLine("==========filter is " + args[1]);
             string inDir = "";
             string filter = "*.png";
             if (args.Length == 0)
             {
                 inDir = Directory.GetCurrentDirectory();
-                //inDir = @"F:\GitProjects\ArtBmt\Art Bmt\UI";
+               // inDir = @"F:\华夏第一批音效";
             }
             else
             {
@@ -127,7 +133,7 @@ namespace HanZiToPinYin
                 StringUtility.CopyDirectory(inDir, newPath, ref fileList, null, CopyFileCallBack);
                 Console.WriteLine("============" + "当前路径：" + inDir + " 重命名文件格式：" + filter + "============");
                 RenameFile(newPath, filter);
-                Console.WriteLine("======操作完毕========");
+                Console.WriteLine("======操作完毕,点击任意键继续========");
                 Console.ReadKey();
             }
             catch (Exception ex)
