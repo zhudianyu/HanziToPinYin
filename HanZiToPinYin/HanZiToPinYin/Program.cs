@@ -11,8 +11,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-
+using OfficeOpenXml;
+using OfficeOpenXml.Table;
 namespace HanZiToPinYin
 {
     class Program
@@ -75,6 +75,78 @@ namespace HanZiToPinYin
         {
             Console.WriteLine(fileName);
         }
+        static string PngExeclName = "PngName.xlsx";
+        static void WriteToExcel(List<string> fileList)
+        {
+            List<string> newList = new List<string>();
+            for (int i = 0; i < fileList.Count; i++)
+            {
+                int col = 2 + i;
+                string fullName = fileList[i];
+                if (!fullName.EndsWith(".png"))
+                {
+                    continue;
+                }
+                newList.Add(fullName);
+            }
+            FileInfo newFile = new FileInfo(PngExeclName);
+            if (newFile.Exists)
+            {
+               
+                 using (ExcelPackage package = new ExcelPackage(newFile))
+                 {
+                     ExcelWorksheet worksheet = package.Workbook.Worksheets["PngName"];
+                     for (int i = 0; i < newList.Count; i++)
+                     {
+                         int col = 2 + i;
+                         string fullName = newList[i];
+                         string newName = worksheet.Cells[col, 2].GetValue<string>();
+                         newName += ".png";
+                         fullName = fullName.Replace("\\", "/");
+                         int len = fullName.LastIndexOf('/');
+                         string prename = fullName.Substring(0, len + 1);
+                         newName = prename + newName;
+                         if(!File.Exists(newName))
+                         {
+                             File.Copy(fullName, newName);
+                             File.Delete(fullName);
+                         }
+                       
+                     }
+                     
+                 }
+            }
+            else
+            {
+      
+                using (ExcelPackage package = new ExcelPackage(newFile))
+                {
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("PngName");
+                    //Add the headers
+                    worksheet.Cells[1, 1].Value = "原始名字";
+                    worksheet.Cells[1, 2].Value = "新名字";
+                    worksheet.Cells[1, 3].Value = "路径";
+              
+                    for (int i = 0; i < newList.Count; i++)
+                    {
+                        int col = 2 + i;
+                        string fullName = newList[i];
+                        if(!fullName.EndsWith(".png"))
+                        {
+                            continue;
+                        }
+                       fullName = fullName.Replace("\\", "/");
+                        int len = fullName.LastIndexOf('/');
+                        string pngName = fullName.Substring(len+1);
+                        worksheet.Cells[col, 1].Value = pngName;
+                        worksheet.Cells[col, 3].Value = fullName;
+                    }
+                    package.Save();
+                    //xieru
+                }
+            }
+           
+        }
         static void Main(string[] args)
         {
             Console.WriteLine("=============修改文件夹下中文命名的文件为拼音命名==================");
@@ -132,7 +204,8 @@ namespace HanZiToPinYin
                 List<string> fileList = new List<string>();
                 StringUtility.CopyDirectory(inDir, newPath, ref fileList, null, CopyFileCallBack);
                 Console.WriteLine("============" + "当前路径：" + inDir + " 重命名文件格式：" + filter + "============");
-                RenameFile(newPath, filter);
+                WriteToExcel(fileList);
+               // RenameFile(newPath, filter);
                 Console.WriteLine("======操作完毕,点击任意键继续========");
                 Console.ReadKey();
             }
